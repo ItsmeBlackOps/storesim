@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>1–20 Click Challenge</title>
+  <title>1–20 Click Challenge (2 s Shuffle)</title>
   <style>
     body {
       font-family: sans-serif;
@@ -53,9 +53,9 @@
 
   <script>
     // CONFIG
-    const PENALTY       = 1.5;   // seconds lost per wrong click
-    const START_TIME    = 25.0;  // total seconds on clock
-    const SHUFFLE_MS    = 2000;  // shuffle every 1000 ms
+    const PENALTY    = 1.5;    // seconds lost per wrong click
+    const START_TIME = 25.0;   // total seconds on clock
+    const SHUFFLE_MS = 2000;   // shuffle every 2000 ms (2 s)
 
     // GAME STATE
     let remaining  = START_TIME;
@@ -155,7 +155,7 @@
       }
     }
 
-    // kick things off
+    // start the game
     init();
   </script>
 
