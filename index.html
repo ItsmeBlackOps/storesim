@@ -1,7 +1,9 @@
-<html lang="en"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Number-Shuffle Simulator</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>1–20 Click Challenge</title>
   <style>
     body {
       font-family: sans-serif;
@@ -51,55 +53,64 @@
 
   <script>
     // CONFIG
-    const PENALTY = 1.5;     // seconds lost on wrong click
-    const START_TIME = 25.0; // total seconds
+    const PENALTY       = 1.5;   // seconds lost per wrong click
+    const START_TIME    = 25.0;  // total seconds on clock
+    const SHUFFLE_MS    = 1000;  // shuffle every 1000 ms
 
-    // STATE
-    let remaining = START_TIME;
-    let nextNum   = 1;
-    let nums      = [];
+    // GAME STATE
+    let remaining  = START_TIME;
+    let nextNum    = 1;
+    let numbers    = [];
     let lastStamp;
-    let shuffleInt, timerInt;
+    let shuffleID, timerID;
 
     const gridEl   = document.getElementById('grid');
     const timerEl  = document.getElementById('timer');
     const targetEl = document.getElementById('target');
 
     function init() {
-      nums = Array.from({length:20},(_,i)=>i+1);
+      // prepare numbers 1–20
+      numbers = Array.from({length:20}, (_,i) => i+1);
       lastStamp = Date.now();
+
       renderGrid();
-      shuffleInt = setInterval(shuffleAndRender, 500);
-      timerInt   = setInterval(tick, 100);
+      shuffleID = setInterval(shuffleAndRender, SHUFFLE_MS);
+      timerID   = setInterval(tick, 100);
     }
 
     function shuffleAndRender() {
-      shuffle(nums);
+      shuffle(numbers);
       renderGrid();
     }
 
     function renderGrid() {
       gridEl.innerHTML = '';
-      nums.forEach(n => {
+      numbers.forEach(n => {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        // Already clicked?
+
         if (n < nextNum) {
+          // already clicked numbers are blanked out
           cell.classList.add('selected');
           cell.textContent = '';
         } else {
           cell.textContent = n;
           cell.addEventListener('click', () => handleClick(n));
         }
+
         gridEl.appendChild(cell);
       });
+
       targetEl.textContent = 'Next: ' + nextNum;
     }
 
     function handleClick(n) {
       if (n === nextNum) {
         nextNum++;
-        if (nextNum > 20) return endGame(true);
+        if (nextNum > 20) {
+          endGame(true);
+          return;
+        }
       } else {
         remaining = Math.max(0, remaining - PENALTY);
       }
@@ -108,11 +119,15 @@
 
     function tick() {
       const now = Date.now();
-      const dt  = (now - lastStamp)/1000;
+      const dt  = (now - lastStamp) / 1000;
       lastStamp = now;
+
       remaining -= dt;
       updateTimer();
-      if (remaining <= 0) endGame(false);
+
+      if (remaining <= 0) {
+        endGame(false);
+      }
     }
 
     function updateTimer() {
@@ -120,28 +135,29 @@
     }
 
     function endGame(won) {
-      clearInterval(shuffleInt);
-      clearInterval(timerInt);
+      clearInterval(shuffleID);
+      clearInterval(timerID);
       setTimeout(() => {
-        alert((won ? '🎉 You clicked all numbers! ' : '⏰ Time’s up! ')
-            + 'Time left: ' + Math.max(0,remaining).toFixed(1) + ' s');
-        // reload to play again
+        alert(
+          won
+            ? `🎉 You nailed it! Time left: ${remaining.toFixed(1)} s`
+            : `⏰ Out of time!`
+        );
         location.reload();
       }, 100);
     }
 
-    // Fisher–Yates
-    function shuffle(a) {
-      for (let i=a.length-1; i>0; i--) {
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]] = [a[j],a[i]];
+    // Fisher–Yates shuffle
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
     }
 
-    // start right away
+    // kick things off
     init();
   </script>
 
-
-
-</body></html>
+</body>
+</html>
