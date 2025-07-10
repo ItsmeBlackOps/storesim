@@ -3,28 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>1–20 Click Challenge (2 s Shuffle)</title>
+  <title>1–20 Click Challenge (2s Shuffle)</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: serif;
+      font-weight: 700;
+      background: #1a1a1a;
+      color: white;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      margin-top: 30px;
+      height: 100vh;
+      background-image: url('https://r2.fivemanage.com/3OJ3vdwgKeR1XVN7nKo46/asdasdasdasdasdad.webp');
+      background-repeat: no-repeat;
+      background-size: cover;
+      margin: 0;
     }
+
+    #game-container {
+      text-align: center;
+    }
+
+    #timer {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
     #info {
       margin-bottom: 15px;
       font-size: 18px;
     }
+
     #grid {
       display: grid;
       grid-template-columns: repeat(5, 60px);
       grid-template-rows: repeat(4, 60px);
-      gap: 6px;
+      grid-gap: 10px;
+      justify-content: center;
+      margin-bottom: 10px;
+      background-color: rgba(0,0,0,0.7);
+      padding: 2vw;
+      border-radius: 10px;
     }
+
     .cell {
-      width: 60px; height: 60px;
-      background: #222;
+      width: 60px;
+      height: 60px;
+      background: #151515;
       color: #fff;
       display: flex;
       align-items: center;
@@ -32,50 +58,107 @@
       font-size: 20px;
       cursor: pointer;
       user-select: none;
+      transition: background 0.3s;
       border-radius: 4px;
     }
+
+    .cell:hover {
+      outline: 1px solid #444;
+    }
+
     .cell.selected {
       background: #555;
       color: #888;
       cursor: default;
     }
+
+    #message {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+
+    #restart {
+      background: #383838;
+      color: rgb(97, 97, 97);
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    #restart:hover {
+      background: #ffffff;
+    }
+
+    #progress-container {
+      width: 400px;
+      height: 20px;
+      background: #444;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px auto;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 100%;
+      background-color: limegreen;
+      transition: width 1.0s linear;
+    }
   </style>
 </head>
 <body>
+  <div id="game-container">
+    <div id="info">
+      <span id="timer">Time: 25.0 s</span>
+      &nbsp;|&nbsp;
+      <span id="target">Next: 1</span>
+    </div>
 
-  <div id="info">
-    <span id="timer">Time: 25.0 s</span>
-    &nbsp;|&nbsp;
-    <span id="target">Next: 1</span>
+    <div id="grid"></div>
+
+    <button id="restart" onclick="location.reload()">Restart</button>
+
+    <div id="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+
+    <div id="message"></div>
   </div>
 
-  <div id="grid"></div>
-
   <script>
-    // CONFIG
-    const PENALTY    = 1.5;    // seconds lost per wrong click
-    const START_TIME = 25.0;   // total seconds on clock
-    const SHUFFLE_MS = 1500;   // shuffle every 2000 ms (2 s)
+    const PENALTY    = 1.5;
+    const START_TIME = 25.0;
+    const SHUFFLE_MS = 2000;
 
-    // GAME STATE
     let remaining  = START_TIME;
     let nextNum    = 1;
     let numbers    = [];
     let lastStamp;
     let shuffleID, timerID;
 
-    const gridEl   = document.getElementById('grid');
-    const timerEl  = document.getElementById('timer');
-    const targetEl = document.getElementById('target');
+    const gridEl     = document.getElementById('grid');
+    const timerEl    = document.getElementById('timer');
+    const targetEl   = document.getElementById('target');
+    const progressEl = document.getElementById('progress-bar');
+    const messageEl  = document.getElementById('message');
 
     function init() {
-      // prepare numbers 1–20
-      numbers = Array.from({length:20}, (_,i) => i+1);
+      numbers = Array.from({length: 20}, (_, i) => i + 1);
       lastStamp = Date.now();
 
       renderGrid();
       shuffleID = setInterval(shuffleAndRender, SHUFFLE_MS);
       timerID   = setInterval(tick, 100);
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
     }
 
     function shuffleAndRender() {
@@ -90,7 +173,6 @@
         cell.className = 'cell';
 
         if (n < nextNum) {
-          // already clicked numbers are blanked out
           cell.classList.add('selected');
           cell.textContent = '';
         } else {
@@ -132,32 +214,20 @@
 
     function updateTimer() {
       timerEl.textContent = 'Time: ' + remaining.toFixed(1) + ' s';
+      const percent = Math.max(0, (remaining / START_TIME) * 100);
+      progressEl.style.width = percent + '%';
+      progressEl.style.backgroundColor = percent > 50 ? 'limegreen' : (percent > 20 ? 'orange' : 'red');
     }
 
     function endGame(won) {
       clearInterval(shuffleID);
       clearInterval(timerID);
-      setTimeout(() => {
-        alert(
-          won
-            ? `🎉 You nailed it! Time left: ${remaining.toFixed(1)} s`
-            : `⏰ Out of time!`
-        );
-        location.reload();
-      }, 100);
+      messageEl.textContent = won
+        ? `🎉 You nailed it! Time left: ${remaining.toFixed(1)} s`
+        : `⏰ Out of time!`;
     }
 
-    // Fisher–Yates shuffle
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-    }
-
-    // start the game
     init();
   </script>
-
 </body>
 </html>
